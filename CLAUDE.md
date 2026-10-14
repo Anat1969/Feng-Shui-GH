@@ -11,7 +11,7 @@
 
 ## עבודה
 - `npm run dev`, `npm run build`. Vite + React + framer-motion. בלי Supabase: אין מידע לשמור, האבחון נשמר בכתובת.
-- פריסה: Vercel, ענף ייצור main. כל מיזוג ל-main מעדכן את הכתובת הראשית.
+- פריסה: פרויקט Vercel בשם feng-shui, מחובר לריפו. כתובת: https://feng-shui-two.vercel.app. ענף ייצור main, כל מיזוג ל-main מעדכן את הכתובת הראשית.
 - בכל שינוי בקבצים במטמון: להעלות את `CACHE` ב-`public/sw.js`.
 
 ## שפת עיצוב
