@@ -52,6 +52,7 @@ p:last-child { margin-bottom: 0; }
   max-width: 1240px; margin: 0 auto; padding: 12px 24px 6px;
 }
 .brand { display: flex; align-items: baseline; gap: 10px; text-decoration: none; color: var(--ink); min-width: 0; }
+.brand-logo { width: auto; height: 40px; align-self: center; filter: drop-shadow(0 4px 6px rgba(0,0,0,.18)); }
 .brand-name { font-weight: 200; font-size: 1.75rem; letter-spacing: -.01em; line-height: 1; }
 .brand-sub { font-family: var(--mono); font-size: .72rem; color: var(--ink-3); white-space: nowrap; }
 .actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; min-width: 0; }
@@ -348,6 +349,7 @@ p:last-child { margin-bottom: 0; }
 @media (max-width: 640px) {
   :root { --nav-h: 142px; }
   .topbar-row { flex-direction: column; align-items: stretch; padding: 10px 16px 4px; gap: 8px; }
+  .brand-logo { height: 32px; }
   .actions { justify-content: flex-start; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
   .actions::-webkit-scrollbar { display: none; }
   .actions .btn { flex: 0 0 auto; padding: 6px 10px; font-size: .8rem; }
