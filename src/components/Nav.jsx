@@ -44,7 +44,7 @@ export default function Nav({ current }) {
     <nav className="topbar" aria-label="ניווט ראשי">
       <div className="topbar-row">
         <a className="brand" href="#" onClick={e => { e.preventDefault(); go(""); }}>
-          <img className="brand-logo" src="/logo.png" alt="הלוגו של ענת שטיבלמן" width="108" height="115" />
+          <img className="brand-logo" src="/logo.png" alt="אד׳ ענת שטיבלמן" width="442" height="155" />
           <span className="brand-name">פנג שואי</span>
           <span className="brand-sub">קריאת מרחב</span>
         </a>
