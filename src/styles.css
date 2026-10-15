@@ -303,7 +303,12 @@ p:last-child { margin-bottom: 0; }
 .howlist { padding-inline-start: 20px; color: var(--ink-2); margin: 12px 0 0; }
 .howlist li { margin-bottom: 6px; }
 .trigrams { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 10px; }
-.tg { display: grid; justify-items: center; gap: 8px; cursor: pointer; padding: 18px 8px; text-align: center; transition: transform .2s var(--ease); }
+.tg { position: relative; overflow: hidden; display: grid; justify-items: center; align-content: start; gap: 8px; cursor: pointer; padding: 18px 8px 16px; text-align: center; transition: transform .2s var(--ease); }
+.tg > :not(.cell-art) { position: relative; z-index: 1; }
+.tg .cell-art { opacity: .22; }
+.tg:hover .cell-art { opacity: .4; transform: scale(1.06); }
+.tg::after { content: ""; position: absolute; inset: auto 0 0 0; height: 3px; background: var(--c); opacity: .8; }
+.tg-insight { font-size: .78rem; line-height: 1.45; color: var(--ink-2); text-wrap: balance; }
 .tg:hover { transform: translateY(-4px); }
 .tg-n { font-size: 1.1rem; font-weight: 400; }
 
@@ -471,7 +476,7 @@ p:last-child { margin-bottom: 0; }
   .page, .home { padding: 26px 16px 0; }
   .page-foot { padding: 0 16px 32px; }
   .steps, .swatches, .el-sum, .rooms, .visuals, .compare { grid-template-columns: minmax(0, 1fr); }
-  .history { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .history, .trigrams { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .route-item { grid-template-columns: 40px minmax(0, 1fr); padding: 16px; gap: 12px; }
   .route-go { display: none; }
   .route-n { font-size: 1.2rem; }
