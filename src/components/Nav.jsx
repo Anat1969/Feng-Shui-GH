@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { SECTIONS, LINKS } from "../data.js";
+import { SECTIONS, LINKS, PROJECT } from "../data.js";
 import { go } from "../router.js";
 import AdminLogin from "./AdminLogin.jsx";
 
@@ -85,6 +85,19 @@ export default function Nav({ current }) {
                     ? <button className="btn btn-dark" onClick={install}>התקנת האפליקציה</button>
                     : <span className="muted small settings-note">התקנת האפליקציה: נפתחת כשהדפדפן Chrome מציע אותה, או מתפריט Chrome, "התקנה".</span>}
                 </div>
+                <div className="settings-sep" />
+                <div className="label">פרטי הפרויקט</div>
+                <dl className="proj">
+                  {PROJECT.map(p => (
+                    <div key={p.k}>
+                      <dt>{p.k}</dt>
+                      <dd>
+                        {p.href ? <a href={p.href} target="_blank" rel="noopener" dir="ltr">{p.v}</a> : <span dir="ltr">{p.v}</span>}
+                        {p.sub && <small>{p.sub}</small>}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
                 <div className="settings-sep" />
                 <div className="label">מנהלת</div>
                 <AdminLogin compact />

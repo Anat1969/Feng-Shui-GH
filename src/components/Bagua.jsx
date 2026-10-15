@@ -14,6 +14,7 @@ const TG_INSIGHT = {
   sw: "האדמה מקבלת ומחזיקה: זוגיות ויחסים",
   west: "האגם שמח ומשקף: יצירה וילדים",
   nw: "השמיים פרושים מעל: אנשים תומכים ומסעות",
+  center: "הציר שהכול נשען עליו: בריאות ואיזון",
 };
 
 export default function Bagua({ item }) {
@@ -44,16 +45,27 @@ export default function Bagua({ item }) {
                     className={`cell${on ? " on" : ""}${selected && !on ? " dim" : ""}${k === "center" ? " center" : ""}`}
                     style={{ "--c": e.c }}
                     onClick={() => select(k)}
+                    aria-label={`${b.n}: ${b.la}. ${TG_INSIGHT[k]}`}
                     initial={{ opacity: 0, scale: 0.92 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: i * 0.04, duration: 0.35 }}
-                    whileHover={{ y: -3 }}
                   >
-                    <BaguaArt k={k} color={e.c} />
-                    <span className="cell-dir mono">{b.n}</span>
-                    {b.trigram ? <Trigram lines={b.trigram} color={on ? e.c : "#1b1b1d"} w={30} /> : <span className="cell-hz">中</span>}
-                    <span className="cell-la">{b.la}</span>
-                    <span className="cell-bar" />
+                    <span className="cell-inner">
+                      <span className="cell-face cell-front">
+                        <BaguaArt k={k} color={e.c} />
+                        <span className="cell-dir mono">{b.n}</span>
+                        {b.trigram ? <Trigram lines={b.trigram} color={on ? e.c : "#1b1b1d"} w={30} /> : <span className="cell-hz">中</span>}
+                        <span className="cell-la">{b.la}</span>
+                        <span className="cell-bar" />
+                      </span>
+                      <span className="cell-face cell-back" aria-hidden="true">
+                        <BaguaArt k={k} color={e.c} />
+                        <span className="cell-tg" style={{ color: e.c }}>{b.tg}</span>
+                        <span className="cell-img mono">{b.img}</span>
+                        <span className="cell-insight">{TG_INSIGHT[k]}</span>
+                        <span className="cell-bar" />
+                      </span>
+                    </span>
                   </motion.button>
                 );
               })}
@@ -80,34 +92,13 @@ export default function Bagua({ item }) {
         </div>
       </div>
 
-      <section className="block">
-        <div className="block-head">
-          <div className="label">מפתח</div>
-          <h2 className="h1">שמונה הטריגרמים</h2>
-          <p className="muted">כל טריגרם בנוי משלושה קווים. קו שלם הוא יאנג, קו שבור הוא יין. קוראים אותם מלמטה למעלה. ברקע: הדימוי של הטריגרם, ומתחתיו התובנה שמחברת אותו לנושא.</p>
-        </div>
-        <div className="trigrams">
-          {BAGUA_ORDER.filter(k => k !== "center").map(k => {
-            const b = BG[k];
-            return (
-              <button key={k} className="tg card" onClick={() => select(k)} style={{ "--c": EL[b.el].c }} data-tg={k}>
-                <BaguaArt k={k} color={EL[b.el].c} />
-                <Trigram lines={b.trigram} w={40} />
-                <span className="tg-n">{b.tg}</span>
-                <span className="mono">{b.py} · {b.img}</span>
-                <span className="tg-insight">{TG_INSIGHT[k]}</span>
-              </button>
-            );
-          })}
-        </div>
-      </section>
 
       <div className="notes">
         <Note kind="עובדה">
           יש שתי שיטות להנחת המפה. בשיטה הקלאסית (בית ספר המצפן) המפה מכוונת לפי הצפון האמיתי. בשיטה המערבית החדשה (BTB) מיישרים את הצלע התחתונה לקיר הכניסה, בלי מצפן. כאן מוצגת השיטה הקלאסית.
         </Note>
         <Note kind="איך לזכור">
-          ברקע של כל משבצת מצויר הדימוי של הטריגרם שלה: מים זורמים בצפון, הר בצפון־מזרח, עץ ורעם במזרח, רוח בדרום־מזרח, שמש באש של הדרום, שניים על קרקע משותפת בדרום־מערב, אגם במערב ושמיים בצפון־מערב. הדימוי מחבר בין הכיוון לנושא.
+          ריחוף מעל משבצת הופך אותה, ומאחור מופיעים הטריגרם, הדימוי שלו והתובנה שמחברת אותו לנושא. כך ההסבר נשאר צמוד למקום שלו במפה. בטריגרם קו שלם הוא יאנג וקו שבור הוא יין, וקוראים מלמטה למעלה.
         </Note>
         <Note kind="תובנה">
           במפות סיניות מסורתיות הדרום מצויר למעלה, כי השליט ישב מול הדרום. כאן הצפון למעלה, כמו בתוכנית אדריכלית, כדי שיהיה קל להניח את המפה על תוכנית אמיתית.
@@ -132,7 +123,7 @@ function BaguaPanel({ k }) {
           <div className="mono">{b.tg} · {b.py} · {b.img}</div>
         </div>
       </div>
-      <div className="panel-art"><BaguaArt k={k} color={e.c} /><div className="panel-area" style={{ color: e.c }}>{b.la}</div></div>
+      <div className="panel-art"><BaguaArt k={k} color={e.c} /><div className="panel-area" style={{ color: e.c }}>{b.la}</div><div className="panel-insight">{TG_INSIGHT[k]}</div></div>
       <dl className="rows">
         <div><dt>אלמנט</dt><dd><button className="linklike" onClick={() => go("elements", b.el)}><ElTag k={b.el} /></button></dd></div>
         {rows.map(([l, v]) => <div key={l}><dt>{l}</dt><dd>{v}</dd></div>)}

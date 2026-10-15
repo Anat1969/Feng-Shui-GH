@@ -12,6 +12,15 @@ export const LINKS = {
   research: "https://claude.ai/project/019d5953-1df6-7415-be8c-92a308a05b4d",
 };
 
+/* פרטי הפרויקט שמוצגים בכרטיס ההגדרות. המפתח עצמו לא נחשף: רק השם שלו ואיפה הוא נשמר. */
+export const PROJECT = [
+  { k: "ריפו ב-GitHub", v: "Anat1969/Feng-Shui-GH", href: "https://github.com/Anat1969/Feng-Shui-GH" },
+  { k: "פרויקט Supabase", v: "cultura-GH", sub: "ktqmwpbzcnzkhjskqisy · טבלאות fs_ בלבד", href: "https://supabase.com/dashboard/project/ktqmwpbzcnzkhjskqisy" },
+  { k: "מפתח Claude", v: "ANTHROPIC_API_KEY", sub: "סוד בפרויקט cultura-GH, לא נחשף בדפדפן. מופעל רק אחרי כניסת מנהלת" },
+  { k: "פונקציית הניתוח", v: "fs-analyze-image", sub: "claude-sonnet-5-5" },
+  { k: "פריסה", v: "Vercel · feng-shui", href: "https://feng-shui-two.vercel.app" },
+];
+
 export const SECTIONS = [
   { id: "yinyang", n: "01", title: "יין ויאנג", lead: "הדואליות שמתחת לכל מרחב", step: "להבין את האיזון בין מנוחה לפעולה, חושך לאור, פנים לחוץ." },
   { id: "elements", n: "02", title: "חמשת האלמנטים", lead: "השפה של החומר, הצורה והצבע", step: "ללמוד את חמש האיכויות ואת שני המעגלים שקושרים ביניהן." },
