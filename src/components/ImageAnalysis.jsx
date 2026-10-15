@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { EL } from "../data.js";
 import { Note } from "./ui.jsx";
 import { imageFromClipboard, imageFromDrop, toJpeg, blobToBase64, copyText } from "../lib/images.js";
-import { analyzeImage, uploadImage, signedUrl, insertAnalysis, updateAnalysis, listAnalyses } from "../lib/supabase.js";
+import { analyzeImage, uploadImage, signedUrl, insertAnalysis, updateAnalysis, listAnalyses, useAdmin } from "../lib/supabase.js";
+import AdminLogin from "./AdminLogin.jsx";
 
 /* אזור קליטת תמונה: הדבקה, גרירה או קובץ */
 function Drop({ url, onFile, label, act }) {
@@ -37,8 +38,9 @@ export default function ImageAnalysis() {
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
   const [history, setHistory] = useState([]);
+  const { ready, isAdmin } = useAdmin();
 
-  useEffect(() => { refreshHistory(); }, []);
+  useEffect(() => { if (isAdmin) refreshHistory(); else setHistory([]); }, [isAdmin]);
 
   async function refreshHistory() {
     try {
@@ -71,7 +73,7 @@ export default function ImageAnalysis() {
       setResult(res);
       setStatus("הניתוח מוכן");
       try {
-        const path = await uploadImage(blob, "before");
+        const path = await uploadImage(blob, "analyses", "before");
         const row = await insertAnalysis({ before_path: path, result: res });
         setRecord(row);
         refreshHistory();
@@ -85,7 +87,7 @@ export default function ImageAnalysis() {
     if (!after || !record) return;
     setBusy(true); setStatus("שומר...");
     try {
-      const path = await uploadImage(await toJpeg(after), "after");
+      const path = await uploadImage(await toJpeg(after), "analyses", "after");
       await updateAnalysis(record.id, { after_path: path });
       setRecord({ ...record, after_path: path });
       setAfter(null);
@@ -115,7 +117,16 @@ export default function ImageAnalysis() {
         <p className="lede">מעלים תמונה של חדר אמיתי. הניתוח מזהה אילו אלמנטים נוכחים ואילו חסרים, מציע שלושה תיקונים ופרומפט למרחב המשודרג. אחרי השינוי מדביקים תמונה חדשה ומשווים.</p>
       </header>
 
-      <div className="split">
+      {ready && !isAdmin && (
+        <div className="card gate">
+          <div className="label">למנהלת בלבד</div>
+          <h2 className="h2">הניתוח מפעיל את מפתח Claude</h2>
+          <p className="muted">כדי שהמפתח ישמש רק את בעלת האתר, הניתוח פתוח רק אחרי כניסת מנהלת. השרת בודק את זה בכל בקשה, גם אם מישהו מנסה לעקוף את הדף.</p>
+          <AdminLogin />
+        </div>
+      )}
+
+      {isAdmin && <div className="split">
         <div className="card panel">
           <div className="label">01 · תמונת החדר</div>
           <Drop url={beforeUrl} onFile={pickBefore} label="תמונת ה'לפני'" act="before" />
@@ -163,9 +174,9 @@ export default function ImageAnalysis() {
             )}
           </AnimatePresence>
         </div>
-      </div>
+      </div>}
 
-      {result && (
+      {isAdmin && result && (
         <section className="block">
           <div className="block-head">
             <div className="label">05 · לפני ואחרי</div>
@@ -188,10 +199,10 @@ export default function ImageAnalysis() {
         </section>
       )}
 
-      {history.length > 0 && (
+      {isAdmin && history.length > 0 && (
         <section className="block">
           <div className="block-head">
-            <div className="label">שמור במכשיר הזה</div>
+            <div className="label">שמור בחשבון המנהלת</div>
             <h2 className="h1">ניתוחים קודמים</h2>
           </div>
           <div className="history">
@@ -218,7 +229,7 @@ export default function ImageAnalysis() {
           התיקון הראשון כמעט תמיד הוא פינוי או אור, לא קנייה. כדאי לבצע אותו קודם ולצלם שוב לפני שמוסיפים חפצים.
         </Note>
         <Note kind="פרטיות">
-          התמונות נשמרות בתיקייה פרטית ונגישות רק מהמכשיר הזה. הן נשלחות ל-Claude לצורך הניתוח בלבד.
+          תמונות הניתוח נשמרות בתיקייה פרטית שרק המנהלת רואה. הן נשלחות ל-Claude לצורך הניתוח בלבד.
         </Note>
       </div>
     </div>

@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { BG, BAGUA_ORDER, EL } from "../data.js";
 import { go } from "../router.js";
 import { SectionHead, Note, Trigram, ElTag } from "./ui.jsx";
+import BaguaArt from "./BaguaArt.jsx";
 
 export default function Bagua({ item }) {
   const selected = BG[item] ? item : null;
@@ -36,6 +37,7 @@ export default function Bagua({ item }) {
                     transition={{ delay: i * 0.04, duration: 0.35 }}
                     whileHover={{ y: -3 }}
                   >
+                    <BaguaArt k={k} color={e.c} />
                     <span className="cell-dir mono">{b.n}</span>
                     {b.trigram ? <Trigram lines={b.trigram} color={on ? e.c : "#1b1b1d"} w={30} /> : <span className="cell-hz">中</span>}
                     <span className="cell-la">{b.la}</span>
@@ -90,6 +92,9 @@ export default function Bagua({ item }) {
         <Note kind="עובדה">
           יש שתי שיטות להנחת המפה. בשיטה הקלאסית (בית ספר המצפן) המפה מכוונת לפי הצפון האמיתי. בשיטה המערבית החדשה (BTB) מיישרים את הצלע התחתונה לקיר הכניסה, בלי מצפן. כאן מוצגת השיטה הקלאסית.
         </Note>
+        <Note kind="איך לזכור">
+          ברקע של כל משבצת מצויר הדימוי של הטריגרם שלה: מים זורמים בצפון, הר בצפון־מזרח, עץ ורעם במזרח, רוח בדרום־מזרח, שמש באש של הדרום, שניים על קרקע משותפת בדרום־מערב, אגם במערב ושמיים בצפון־מערב. הדימוי מחבר בין הכיוון לנושא.
+        </Note>
         <Note kind="תובנה">
           במפות סיניות מסורתיות הדרום מצויר למעלה, כי השליט ישב מול הדרום. כאן הצפון למעלה, כמו בתוכנית אדריכלית, כדי שיהיה קל להניח את המפה על תוכנית אמיתית.
         </Note>
@@ -113,7 +118,7 @@ function BaguaPanel({ k }) {
           <div className="mono">{b.tg} · {b.py} · {b.img}</div>
         </div>
       </div>
-      <div className="panel-area" style={{ color: e.c }}>{b.la}</div>
+      <div className="panel-art"><BaguaArt k={k} color={e.c} /><div className="panel-area" style={{ color: e.c }}>{b.la}</div></div>
       <dl className="rows">
         <div><dt>אלמנט</dt><dd><button className="linklike" onClick={() => go("elements", b.el)}><ElTag k={b.el} /></button></dd></div>
         {rows.map(([l, v]) => <div key={l}><dt>{l}</dt><dd>{v}</dd></div>)}
