@@ -90,7 +90,6 @@ p:last-child { margin-bottom: 0; }
 .login-form input { font: inherit; font-size: .9rem; padding: 8px 10px; border-radius: 9px; border: 1px solid var(--line-2); background: #fff; color: var(--ink); text-align: left; }
 .login-form input:focus { outline: 2px solid var(--ink); outline-offset: 1px; }
 .err { color: #A23; }
-.gate { max-width: 620px; }
 .brand-name { font-weight: 200; font-size: 1.75rem; letter-spacing: -.01em; line-height: 1; }
 .brand-sub { font-family: var(--mono); font-size: .72rem; color: var(--ink-3); white-space: nowrap; }
 .tabs {
@@ -452,8 +451,22 @@ p:last-child { margin-bottom: 0; }
 .hist-imgs img, .hist-imgs > span { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; background: var(--bg); }
 .hist-none { display: grid; place-items: center; font-size: .7rem; color: var(--ink-3); text-align: center; }
 
-.card-login { display: grid; gap: 6px; padding: 12px; border-radius: 10px; background: var(--bg); }
-.card-login .label { margin: 0; }
+/* מפתח מאיר: ליד כל כפתור שמפעיל את מפתח Claude */
+.key-mark {
+  display: inline-grid; place-items: center; width: 26px; height: 26px; margin-inline-start: 10px; vertical-align: middle;
+  border-radius: 50%; color: #f4c542;
+  background: radial-gradient(circle, rgba(255, 214, 102, .35), rgba(255, 214, 102, 0) 70%);
+  filter: drop-shadow(0 0 4px rgba(255, 196, 61, .9));
+  animation: key-glow 2.4s ease-in-out infinite;
+}
+.key-mark svg { transform: rotate(-35deg); }
+.tab .key-mark { width: 20px; height: 20px; margin-inline-start: 6px; }
+.tab .key-mark svg { width: 15px; height: 15px; }
+@keyframes key-glow {
+  0%, 100% { filter: drop-shadow(0 0 3px rgba(255, 196, 61, .6)); }
+  50% { filter: drop-shadow(0 0 9px rgba(255, 196, 61, 1)); }
+}
+@media (prefers-reduced-motion: reduce) { .key-mark { animation: none; } }
 
 /* משחק חם / קר */
 .bedgame { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: var(--g); align-items: stretch; }

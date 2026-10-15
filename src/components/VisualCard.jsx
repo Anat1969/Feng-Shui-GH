@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { buildVisualPrompt } from "../lib/visualPrompt.js";
 import { imageFromClipboard, imageFromDrop, toJpeg, copyText } from "../lib/images.js";
-import { loadVisuals, saveVisual, uploadImage, signedUrl, removeImage, useAdmin } from "../lib/supabase.js";
-import AdminLogin from "./AdminLogin.jsx";
+import { loadVisuals, saveVisual, uploadImage, signedUrl, removeImage } from "../lib/supabase.js";
 
 /* מאגר משותף לכל הכרטיסים: נטען פעם אחת מ-fs_room_visuals. התמונות משותפות לכל המבקרים. */
 let cache = null;
@@ -26,7 +25,6 @@ function useVisuals() {
 export default function VisualCard({ vkey, title, data, tone }) {
   const { insight, prompt } = buildVisualPrompt(data);
   const { rows, put, error: loadError } = useVisuals();
-  const { isAdmin } = useAdmin();
   const saved = rows?.[vkey];
   const [flipped, setFlipped] = useState(false);
   const [img, setImg] = useState("");
@@ -34,7 +32,6 @@ export default function VisualCard({ vkey, title, data, tone }) {
   const [draftUrl, setDraftUrl] = useState("");
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
-  const [askLogin, setAskLogin] = useState(false);
   const zone = useRef(null);
   const fileRef = useRef(null);
 
@@ -46,7 +43,6 @@ export default function VisualCard({ vkey, title, data, tone }) {
   }, [saved?.image_path]);
 
   useEffect(() => { if (flipped) setTimeout(() => zone.current?.focus({ preventScroll: true }), 350); }, [flipped]);
-  useEffect(() => { if (isAdmin) setAskLogin(false); }, [isAdmin]);
   useEffect(() => () => draftUrl && URL.revokeObjectURL(draftUrl), [draftUrl]);
 
   function take(file) {
@@ -114,12 +110,9 @@ export default function VisualCard({ vkey, title, data, tone }) {
             {draftUrl ? <img src={draftUrl} alt="תצוגה מקדימה" /> : <span>מדביקים כאן תמונה (Ctrl+V) או גוררים אותה לכאן</span>}
           </div>
           <div className="row-btns">
-            <button className="btn btn-dark btn-sm" onClick={() => isAdmin ? save() : setAskLogin(true)} disabled={!draft || busy} tabIndex={flipped ? 0 : -1} data-act="save">שמירה</button>
+            <button className="btn btn-dark btn-sm" onClick={save} disabled={!draft || busy} tabIndex={flipped ? 0 : -1} data-act="save">שמירה</button>
             <span className="muted small" role="status">{status || loadError}</span>
           </div>
-          {!isAdmin && (askLogin
-            ? <div className="card-login"><div className="label">כדי לשמור את התמונה לכל המבקרים: כניסת מנהלת</div><AdminLogin compact /></div>
-            : <p className="muted small">השמירה לכל המבקרים פתוחה למנהלת. לחיצה על "שמירה" תפתח כאן את הכניסה.</p>)}
         </div>
       </div>
     </div>

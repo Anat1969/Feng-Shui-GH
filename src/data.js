@@ -16,7 +16,7 @@ export const LINKS = {
 export const PROJECT = [
   { k: "ריפו ב-GitHub", v: "Anat1969/Feng-Shui-GH", href: "https://github.com/Anat1969/Feng-Shui-GH" },
   { k: "פרויקט Supabase", v: "cultura-GH", sub: "ktqmwpbzcnzkhjskqisy · טבלאות fs_ בלבד", href: "https://supabase.com/dashboard/project/ktqmwpbzcnzkhjskqisy" },
-  { k: "מפתח Claude", v: "ANTHROPIC_API_KEY", sub: "סוד בפרויקט cultura-GH, לא נחשף בדפדפן. מופעל רק אחרי כניסת מנהלת" },
+  { k: "מפתח Claude", v: "ANTHROPIC_API_KEY", sub: "סוד בפרויקט cultura-GH, לא נחשף בדפדפן. כל כפתור שמפעיל אותו מסומן במפתח מאיר" },
   { k: "פונקציית הניתוח", v: "fs-analyze-image", sub: "claude-sonnet-5-5" },
   { k: "פריסה", v: "Vercel · feng-shui", href: "https://feng-shui-two.vercel.app" },
 ];
