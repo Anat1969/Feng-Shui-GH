@@ -1,5 +1,5 @@
 /* מטמון פשוט: הדף תמיד מהרשת כשאפשר, תמונות וקבצי בנייה מהמטמון */
-const CACHE = "fengshui-v8";
+const CACHE = "fengshui-v9";
 
 self.addEventListener("install", e => self.skipWaiting());
 self.addEventListener("activate", e => {

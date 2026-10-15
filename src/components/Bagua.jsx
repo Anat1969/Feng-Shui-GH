@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BG, BAGUA_ORDER, EL } from "../data.js";
 import { go } from "../router.js";
@@ -20,6 +21,13 @@ const TG_INSIGHT = {
 export default function Bagua({ item }) {
   const selected = BG[item] ? item : null;
   const select = k => go("bagua", k);
+  /* כל משבצת מתהפכת לבד: בריחוף בעכבר, ובמסך מגע בהקשה על המשבצת עצמה בלבד */
+  const [flipped, setFlipped] = useState(() => new Set());
+  const touch = typeof matchMedia !== "undefined" && matchMedia("(hover: none)").matches;
+  const tap = k => {
+    if (touch) setFlipped(prev => { const n = new Set(prev); n.has(k) ? n.delete(k) : n.add(k); return n; });
+    select(k);
+  };
 
   return (
     <div className="page">
@@ -29,12 +37,12 @@ export default function Bagua({ item }) {
         sub="רשת של תשעה ריבועים שמונחת על תוכנית הבית. כל ריבוע הוא כיוון, אלמנט ואזור חיים, והמרכז הוא הלב שמחזיק את כולם."
       />
 
-      <div className="split">
-        <div className="stage">
+      <div className="split split-bagua">
+        <div className="bagua-stage">
           <div className="compass">
             <span className="mono">צפון</span>
           </div>
-          <div className="bagua-wrap">
+          <div className="bagua-fit">
             <div className="bagua" role="grid" aria-label="מפת הבאגואה">
               {BAGUA_ORDER.map((k, i) => {
                 const b = BG[k], e = EL[b.el], on = selected === k;
@@ -42,9 +50,9 @@ export default function Bagua({ item }) {
                   <motion.button
                     key={k}
                     data-bg={k}
-                    className={`cell${on ? " on" : ""}${selected && !on ? " dim" : ""}${k === "center" ? " center" : ""}`}
+                    className={`cell${on ? " on" : ""}${selected && !on ? " dim" : ""}${k === "center" ? " center" : ""}${flipped.has(k) ? " flip" : ""}`}
                     style={{ "--c": e.c }}
-                    onClick={() => select(k)}
+                    onClick={() => tap(k)}
                     aria-label={`${b.n}: ${b.la}. ${TG_INSIGHT[k]}`}
                     initial={{ opacity: 0, scale: 0.92 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -59,7 +67,6 @@ export default function Bagua({ item }) {
                         <span className="cell-bar" />
                       </span>
                       <span className="cell-face cell-back" aria-hidden="true">
-                        <BaguaArt k={k} color={e.c} />
                         <span className="cell-tg" style={{ color: e.c }}>{b.tg}</span>
                         <span className="cell-img mono">{b.img}</span>
                         <span className="cell-insight">{TG_INSIGHT[k]}</span>
@@ -70,11 +77,11 @@ export default function Bagua({ item }) {
                 );
               })}
             </div>
-            <div className="door"><span className="mono">דרום</span></div>
           </div>
+          <div className="door"><span className="mono">דרום</span></div>
         </div>
 
-        <div className="card panel">
+        <div className="card panel bagua-panel">
           <AnimatePresence mode="wait">
             {selected ? <BaguaPanel key={selected} k={selected} /> : (
               <motion.div key="empty" className="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
