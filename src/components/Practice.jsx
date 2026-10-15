@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ROOMS, EL, ELEMENT_KEYS } from "../data.js";
 import { go } from "../router.js";
 import { SectionHead, Note, ElTag } from "./ui.jsx";
+import VisualCard from "./VisualCard.jsx";
 
 const SPOTS = [
   { id: "good", n: "עמדת שליטה", x: 200, y: 222, ok: true, t: "הראש צמוד לקיר מלא, והדלת נראית באלכסון. זה המיקום המומלץ." },
@@ -46,6 +47,25 @@ export default function Practice() {
           </motion.article>
         ))}
       </div>
+
+      <section className="block">
+        <div className="block-head">
+          <div className="label">המחשה</div>
+          <h2 className="h1">איך החדר יכול להיראות</h2>
+          <p className="muted">לכל חדר פרומפט שנבנה מהיסוד, החומרים, האור ואזור הבאגואה שלו. הופכים את הכרטיס, מעתיקים את הפרומפט למחולל תמונות, ומדביקים את התמונה בחזרה. התמונה נשמרת במכשיר הזה.</p>
+        </div>
+        <div className="visuals">
+          {ROOMS.map(r => (
+            <VisualCard
+              key={r.id}
+              vkey={`room:${r.id}`}
+              title={r.title}
+              tone={EL[r.els[0]].c}
+              data={{ room: r.title, element: r.els[0], bagua: r.bagua, light: r.light, chi: r.chi }}
+            />
+          ))}
+        </div>
+      </section>
 
       <section className="block">
         <div className="block-head">

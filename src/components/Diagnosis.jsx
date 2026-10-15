@@ -3,6 +3,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { SYMPTOMS, EL, ELEMENT_KEYS } from "../data.js";
 import { go } from "../router.js";
 import { SectionHead, Note } from "./ui.jsx";
+import VisualCard from "./VisualCard.jsx";
+
+const EL_BAGUA = { fire: "south", earth: "center", metal: "west", water: "north", wood: "east" };
+const EL_LIGHT = {
+  fire: "אור יום חם ונוכח, ועוד שכבת תאורה חמה בגובה העיניים",
+  earth: "אור רך ומפוזר, בלי פינות חשוכות",
+  metal: "אור אחיד ובהיר, משטחים פנויים שמחזירים אותו",
+  water: "אור עמום ורך, השתקפויות על משטח כהה",
+  wood: "אור בוקר טבעי שנכנס עמוק לחדר ונופל על צמחים",
+};
 
 /* הבחירות נשמרות בכתובת (#diagnosis/s1.s4), כך שהעתקת קישור משתפת גם את האבחון */
 export default function Diagnosis({ item }) {
@@ -93,6 +103,13 @@ export default function Diagnosis({ item }) {
                   );
                 })}
                 <p className="muted small">שינוי אחד בכל פעם. חיים איתו שבוע, וחוזרים לאבחון.</p>
+                <div className="label">המרחב המתוקן</div>
+                <VisualCard
+                  vkey={`diagnosis:${top[0]}`}
+                  title={`החדר עם ${EL[top[0]].n}`}
+                  tone={EL[top[0]].c}
+                  data={{ room: "חדר מגורים אחרי התיקון", element: top[0], bagua: EL_BAGUA[top[0]], light: EL_LIGHT[top[0]], chi: "flow" }}
+                />
               </motion.div>
             ) : (
               <motion.div key="none" className="card result empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
