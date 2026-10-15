@@ -6,11 +6,24 @@
 - `src/data.js`: כל התוכן והקישורים. התיעוד בראש הקובץ.
 - `src/router.js`: הכתובת היא המצב, `#עמוד/פריט` (למשל `#elements/fire`, `#bagua/se`, `#diagnosis/s1.s4`). דף הבית הוא `#` ריק.
 - `src/components/`: עמוד לכל שלב, `Nav.jsx` לסרגל העליון, `ui.jsx` לרכיבים משותפים (כותרת, הערה, טריגרם, דפדוף).
+- `src/lib/visualPrompt.js`: `buildVisualPrompt(data)` מקבלת יסוד, צבעים, חומרים, אזור באגואה, אור וזרימת צ׳י, ומחזירה תובנה (עד 15 מילים) ופרומפט בעברית שמסתיים תמיד ב-`PROMPT_SUFFIX`.
+- `src/components/VisualCard.jsx`: כרטיס מתהפך. בחזית שם, תובנה ותמונה. מאחור פרומפט, העתקה, הדבקת תמונה (Ctrl+V, גרירה, קובץ) ושמירה. משמש ב-04 (כרטיס לכל חדר, `room:<id>`) וב-05 (המרחב המתוקן, `diagnosis:<element>`).
+- `src/components/ImageAnalysis.jsx`: `#image-analysis`, כפתור "ניתוח תמונה" ליד 05. העלאה, ניתוח, 3 תיקונים, פרומפט משודרג, תמונת אחרי להשוואה והיסטוריה.
+- `src/lib/supabase.js`: כל הגישה ל-Supabase.
 - `src/styles.css`: כל העיצוב.
 - `public/`: manifest, sw.js, אייקונים.
 
 ## עבודה
-- `npm run dev`, `npm run build`. Vite + React + framer-motion. בלי Supabase: אין מידע לשמור, האבחון נשמר בכתובת.
+- `npm run dev`, `npm run build`. Vite + React + framer-motion + supabase-js. האבחון עצמו נשמר בכתובת.
+- הותקן `uipro init --ai claude` (`.claude/skills/ui-ux-pro-max`).
+
+## Supabase: cultura-GH בלבד (ktqmwpbzcnzkhjskqisy)
+- פרויקט משותף לאפליקציות אחרות. לא לגעת בשום דבר שאינו מתחיל ב-fs. אסור לפתוח את פרויקט FANGSHUI הישן.
+- שלנו: טבלאות `fs_room_visuals` (visual_key ייחודי למכשיר) ו-`fs_image_analyses`, באקט פרטי `fs-images`, פונקציית SQL `fs_device()`, ופונקציית Edge `fs-analyze-image` (claude-sonnet-5-5, vision, JSON מובנה, משתמשת בסוד הקיים `ANTHROPIC_API_KEY`).
+- אין כניסה: כל דפדפן מקבל מזהה אקראי ב-localStorage (`fs_device`) ושולח אותו בכותרת `x-fs-device`. ה-RLS (גם בבאקט, לפי תיקייה) מחזיר לכל מכשיר רק את שלו. הנחה: שמירה לפי מכשיר, לא לפי משתמש.
+- משתני Vercel: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (מפתח anon הישן, JWT, נדרש ל-verify_jwt של הפונקציה).
+- בדיקה חיה של הפונקציה מהסביבה: דרך `extensions.http` ב-SQL, כי supabase.co לא נגיש ישירות.
+- Playwright: מוקים לכל קריאות Supabase (rest, storage, functions) עם מאגר בזיכרון, כולל שמירה ורענון.
 - פריסה: פרויקט Vercel בשם feng-shui, מחובר לריפו. כתובת: https://feng-shui-two.vercel.app. ענף ייצור main, כל מיזוג ל-main מעדכן את הכתובת הראשית.
 - בכל שינוי בקבצים במטמון: להעלות את `CACHE` ב-`public/sw.js`.
 
@@ -25,7 +38,7 @@
 - סרגל ניווט עליון קבוע בכל הדפים. שם האפליקציה מחזיר תמיד לדף הראשון.
 - בסרגל: "העתקת קישור", "שיחת הפיתוח", "פרויקט המחקר" (https://claude.ai/project/019d5953-1df6-7415-be8c-92a308a05b4d), ו"התקנת האפליקציה" כש-Chrome מציע.
 - אייקון לאפליקציה, בלי טקסט.
-- הלוגו של ענת בכותרת, ליד שם האפליקציה: כל המלבן הלבן כמו שהוא, ה-A וגם השם "אד׳ ענת שטיבלמן". לא לחתוך ממנו חלקים ולא להסיר את הרקע הלבן. קובץ: `public/logo.png`. כך בכל אפליקציה שלה.
+- הלוגו של ענת בסרגל העליון בצד שמאל, מתחת לכפתורים (בנייד: באותה שורה עם השם, משמאל). הלוגו: כל המלבן הלבן כמו שהוא, ה-A וגם השם "אד׳ ענת שטיבלמן". לא לחתוך ממנו חלקים ולא להסיר את הרקע הלבן. קובץ: `public/logo.png`. כך בכל אפליקציה שלה.
 - לבנות לפי הסקיל end-to-end-builder (`.claude/skills/end-to-end-builder/SKILL.md`). חריגה ממנו נאמרת מראש.
 
 ## מיזוג

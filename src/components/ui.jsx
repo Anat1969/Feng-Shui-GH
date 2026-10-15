@@ -49,9 +49,11 @@ export function Trigram({ lines, color = "currentColor", w = 34 }) {
 }
 
 export function PageFoot({ current }) {
-  const i = SECTIONS.findIndex(s => s.id === current);
+  const tool = current === "image-analysis";
+  const i = tool ? SECTIONS.length : SECTIONS.findIndex(s => s.id === current);
   const prev = i > 0 ? SECTIONS[i - 1] : null;
-  const next = i < SECTIONS.length - 1 ? SECTIONS[i + 1] : null;
+  const next = current === "diagnosis" ? { id: "image-analysis", title: "ניתוח תמונה" }
+    : !tool && i < SECTIONS.length - 1 ? SECTIONS[i + 1] : null;
   return (
     <footer className="page-foot">
       {current !== "home" && (

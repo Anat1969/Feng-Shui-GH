@@ -7,10 +7,11 @@ import Elements from "./components/Elements.jsx";
 import Bagua from "./components/Bagua.jsx";
 import Practice from "./components/Practice.jsx";
 import Diagnosis from "./components/Diagnosis.jsx";
+import ImageAnalysis from "./components/ImageAnalysis.jsx";
 import { PageFoot } from "./components/ui.jsx";
 import { readHash } from "./router.js";
 
-const PAGES = { yinyang: YinYang, elements: Elements, bagua: Bagua, practice: Practice, diagnosis: Diagnosis };
+const PAGES = { yinyang: YinYang, elements: Elements, bagua: Bagua, practice: Practice, diagnosis: Diagnosis, "image-analysis": ImageAnalysis };
 
 export default function App() {
   const [route, setRoute] = useState(readHash);
