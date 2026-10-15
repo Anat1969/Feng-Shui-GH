@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { EL } from "../data.js";
 import { Note } from "./ui.jsx";
 import { imageFromClipboard, imageFromDrop, toJpeg, blobToBase64, copyText } from "../lib/images.js";
-import { analyzeImage, uploadImage, signedUrl, insertAnalysis, updateAnalysis, listAnalyses, useAdmin } from "../lib/supabase.js";
-import AdminLogin from "./AdminLogin.jsx";
+import { analyzeImage, uploadImage, signedUrl, insertAnalysis, updateAnalysis, listAnalyses } from "../lib/supabase.js";
+import KeyMark from "./KeyMark.jsx";
 
 /* אזור קליטת תמונה: הדבקה, גרירה או קובץ */
 function Drop({ url, onFile, label, act }) {
@@ -38,9 +38,7 @@ export default function ImageAnalysis() {
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
   const [history, setHistory] = useState([]);
-  const { ready, isAdmin } = useAdmin();
-
-  useEffect(() => { if (isAdmin) refreshHistory(); else setHistory([]); }, [isAdmin]);
+  useEffect(() => { refreshHistory(); }, []);
 
   async function refreshHistory() {
     try {
@@ -117,16 +115,7 @@ export default function ImageAnalysis() {
         <p className="lede">מעלים תמונה של חדר אמיתי. הניתוח מזהה אילו אלמנטים נוכחים ואילו חסרים, מציע שלושה תיקונים ופרומפט למרחב המשודרג. אחרי השינוי מדביקים תמונה חדשה ומשווים.</p>
       </header>
 
-      {ready && !isAdmin && (
-        <div className="card gate">
-          <div className="label">למנהלת בלבד</div>
-          <h2 className="h2">הניתוח מפעיל את מפתח Claude</h2>
-          <p className="muted">כדי שהמפתח ישמש רק את בעלת האתר, הניתוח פתוח רק אחרי כניסת מנהלת. השרת בודק את זה בכל בקשה, גם אם מישהו מנסה לעקוף את הדף.</p>
-          <AdminLogin />
-        </div>
-      )}
-
-      {isAdmin && <div className="split">
+      <div className="split">
         <div className="card panel">
           <div className="label">01 · תמונת החדר</div>
           <Drop url={beforeUrl} onFile={pickBefore} label="תמונת ה'לפני'" act="before" />
@@ -135,7 +124,7 @@ export default function ImageAnalysis() {
             <input value={note} onChange={e => setNote(e.target.value)} maxLength={300} placeholder="למשל: קשה להירדם, החדר מרגיש צפוף" />
           </label>
           <div className="row-btns">
-            <button className="btn btn-dark" onClick={run} disabled={!before || busy} data-act="analyze">ניתוח התמונה</button>
+            <button className="btn btn-dark" onClick={run} disabled={!before || busy} data-act="analyze">ניתוח התמונה<KeyMark /></button>
             {(beforeUrl || result) && <button className="btn" onClick={reset} disabled={busy}>התחלה מחדש</button>}
           </div>
           <p className="muted small" role="status">{status}</p>
@@ -174,9 +163,9 @@ export default function ImageAnalysis() {
             )}
           </AnimatePresence>
         </div>
-      </div>}
+      </div>
 
-      {isAdmin && result && (
+      {result && (
         <section className="block">
           <div className="block-head">
             <div className="label">05 · לפני ואחרי</div>
@@ -199,10 +188,10 @@ export default function ImageAnalysis() {
         </section>
       )}
 
-      {isAdmin && history.length > 0 && (
+      {history.length > 0 && (
         <section className="block">
           <div className="block-head">
-            <div className="label">שמור בחשבון המנהלת</div>
+            <div className="label">נשמר באפליקציה</div>
             <h2 className="h1">ניתוחים קודמים</h2>
           </div>
           <div className="history">
@@ -229,7 +218,7 @@ export default function ImageAnalysis() {
           התיקון הראשון כמעט תמיד הוא פינוי או אור, לא קנייה. כדאי לבצע אותו קודם ולצלם שוב לפני שמוסיפים חפצים.
         </Note>
         <Note kind="פרטיות">
-          תמונות הניתוח נשמרות בתיקייה פרטית שרק המנהלת רואה. הן נשלחות ל-Claude לצורך הניתוח בלבד.
+          תמונות הניתוח נשמרות באפליקציה ומופיעות ברשימת הניתוחים הקודמים לכל מי שנכנס. הן נשלחות ל-Claude לצורך הניתוח בלבד. כפתור עם מפתח מאיר מפעיל את מפתח Claude, וכל הפעלה עולה כסף.
         </Note>
       </div>
     </div>

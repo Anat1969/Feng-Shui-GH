@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { SECTIONS, LINKS, PROJECT } from "../data.js";
 import { go } from "../router.js";
-import AdminLogin from "./AdminLogin.jsx";
+import KeyMark from "./KeyMark.jsx";
 
 export default function Nav({ current }) {
   const [copied, setCopied] = useState(false);
@@ -98,9 +98,6 @@ export default function Nav({ current }) {
                     </div>
                   ))}
                 </dl>
-                <div className="settings-sep" />
-                <div className="label">מנהלת</div>
-                <AdminLogin compact />
               </motion.div>
             )}
           </AnimatePresence>
@@ -116,7 +113,7 @@ export default function Nav({ current }) {
           </button>
         ))}
         <button className={`tab tab-tool${current === "image-analysis" ? " on" : ""}`} onClick={() => go("image-analysis")}>
-          ניתוח תמונה
+          ניתוח תמונה<KeyMark />
         </button>
       </div>
     </nav>

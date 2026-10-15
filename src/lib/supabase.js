@@ -1,11 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
-import { useEffect, useState } from "react";
 
 /*
   Supabase: פרויקט cultura-GH, אובייקטים עם תחילית fs בלבד.
   התמונות של החדרים הן תוכן משותף: כל מבקר רואה אותן מכל מכשיר.
-  הוספת תמונות וניתוח תמונה (שמפעיל את מפתח Claude) מותרים רק למנהלת מחוברת,
-  כלומר משתמש שהמייל שלו נמצא בטבלה fs_admins. ה-RLS ופונקציית ה-Edge אוכפים את זה בשרת.
+  אין כניסה והרשאות: כל מבקר יכול להוסיף תמונות ולהפעיל ניתוח.
+  כל כפתור שמפעיל את מפתח Claude מסומן במפתח מאיר (KeyMark).
 */
 const URL = import.meta.env.VITE_SUPABASE_URL || "https://ktqmwpbzcnzkhjskqisy.supabase.co";
 const KEY = import.meta.env.VITE_SUPABASE_ANON_KEY ||
@@ -15,52 +14,8 @@ export const BUCKET = "fs-images";
 const SHARED = "shared-feng-shui-content";
 
 export const supabase = createClient(URL, KEY, {
-  auth: { persistSession: true, autoRefreshToken: true, storageKey: "fs-auth" },
+  auth: { persistSession: false, autoRefreshToken: false },
 });
-
-/* ---------- כניסת מנהלת ---------- */
-
-let adminState = { ready: false, session: null, isAdmin: false };
-const listeners = new Set();
-const emit = () => listeners.forEach(f => f(adminState));
-
-async function refreshAdmin(session) {
-  let isAdmin = false;
-  if (session?.user?.email) {
-    const { data } = await supabase.from("fs_admins").select("email");
-    isAdmin = (data || []).some(r => r.email === session.user.email.toLowerCase());
-  }
-  adminState = { ready: true, session, isAdmin };
-  emit();
-}
-
-supabase.auth.getSession().then(({ data }) => refreshAdmin(data.session)).catch(() => { adminState = { ...adminState, ready: true }; emit(); });
-supabase.auth.onAuthStateChange((_e, session) => { setTimeout(() => refreshAdmin(session), 0); });
-
-export function useAdmin() {
-  const [s, set] = useState(adminState);
-  useEffect(() => { listeners.add(set); set(adminState); return () => listeners.delete(set); }, []);
-  return s;
-}
-
-/* האם כניסה עם Google מופעלת בפרויקט */
-let googlePromise = null;
-export function googleEnabled() {
-  googlePromise = googlePromise || fetch(`${URL}/auth/v1/settings`, { headers: { apikey: KEY } })
-    .then(r => r.json()).then(s => !!s?.external?.google).catch(() => false);
-  return googlePromise;
-}
-
-export function signInGoogle() {
-  return supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: location.origin + location.pathname + location.hash } });
-}
-
-export async function signInPassword(email, password) {
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) throw new Error(error.message === "Invalid login credentials" ? "המייל או הסיסמה שגויים" : error.message);
-}
-
-export const signOut = () => supabase.auth.signOut();
 
 /* ---------- קבצים ---------- */
 
@@ -98,7 +53,7 @@ export async function saveVisual(row) {
   if (error) throw error;
 }
 
-/* ---------- ניתוח תמונה: מנהלת בלבד ---------- */
+/* ---------- ניתוח תמונה: מפעיל את מפתח Claude ---------- */
 
 export async function analyzeImage(base64, mediaType, note) {
   const { data, error } = await supabase.functions.invoke("fs-analyze-image", {
