@@ -84,3 +84,17 @@ export async function updateAnalysis(id, patch) {
   const { error } = await supabase.from("fs_image_analyses").update(patch).eq("id", id);
   if (error) throw error;
 }
+
+/* ---------- ספריית האבחונים: כל אבחון שנשמר, עם תמונה, הסבר ותובנה. משותפת לכל המבקרים ---------- */
+
+export async function listDiagnoses() {
+  const { data, error } = await supabase.from("fs_diagnoses").select("*").order("created_at", { ascending: false }).limit(60);
+  if (error) throw error;
+  return data || [];
+}
+
+export async function insertDiagnosis(row) {
+  const { data, error } = await supabase.from("fs_diagnoses").insert(row).select().single();
+  if (error) throw error;
+  return data;
+}

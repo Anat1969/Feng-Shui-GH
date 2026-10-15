@@ -1,9 +1,11 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SYMPTOMS, EL, ELEMENT_KEYS } from "../data.js";
 import { go } from "../router.js";
 import { SectionHead, Note } from "./ui.jsx";
-import VisualCard from "./VisualCard.jsx";
+import VisualCard, { visualPath } from "./VisualCard.jsx";
+import { buildVisualPrompt } from "../lib/visualPrompt.js";
+import { listDiagnoses, insertDiagnosis, signedUrl } from "../lib/supabase.js";
 
 const EL_BAGUA = { fire: "south", earth: "center", metal: "west", water: "north", wood: "east" };
 const EL_LIGHT = {
@@ -36,6 +38,51 @@ export default function Diagnosis({ item }) {
   }, [picked]);
   const max = Math.max(...Object.values(score));
   const top = max ? ELEMENT_KEYS.filter(k => score[k] === max) : [];
+
+  /* ספריית האבחונים: כל אבחון שנשמר, עם תמונה, הסבר ותובנה */
+  const [library, setLibrary] = useState([]);
+  const [libStatus, setLibStatus] = useState("");
+  const [savedFor, setSavedFor] = useState(new Set());
+  const key = [...picked].sort().join(".");
+
+  useEffect(() => { refreshLibrary(); }, []);
+  useEffect(() => { setLibStatus(""); }, [key]);
+
+  async function refreshLibrary() {
+    try {
+      const rows = await listDiagnoses();
+      setLibrary(await Promise.all(rows.map(async r => ({ ...r, src: await signedUrl(r.image_path).catch(() => "") }))));
+    } catch { setLibrary([]); }
+  }
+
+  const k0 = top[0];
+  const vdata = k0 && { room: "חדר מגורים אחרי התיקון", element: k0, bagua: EL_BAGUA[k0], light: EL_LIGHT[k0], chi: "flow" };
+  const entry = k0 && (() => {
+    const e = EL[k0];
+    const felt = SYMPTOMS.filter(x => picked.has(x.id)).map(x => x.t);
+    const { insight, prompt } = buildVisualPrompt(vdata);
+    return {
+      symptoms: [...picked].sort(),
+      element: k0,
+      title: `חסר ${e.n}`,
+      explanation: `מה הורגש: ${felt.join("; ")}. ${e.space} השינוי הראשון: ${e.m.split(",")[0].trim()}, בצורה ${e.sh.split(",")[0].trim()}, בצבע ${e.co.split(",")[0].trim()}.`,
+      insight,
+      prompt,
+    };
+  })();
+
+  async function saveToLibrary(imagePath) {
+    if (!entry) return;
+    const image_path = imagePath ?? visualPath(`diagnosis:${k0}`);
+    if (!image_path) { setLibStatus("לאבחון בספרייה צריך תמונה: הופכים את הכרטיס, מעתיקים את הפרומפט, מדביקים את התמונה ושומרים. האבחון נכנס לספרייה יחד איתה."); return; }
+    setLibStatus("שומר לספרייה...");
+    try {
+      await insertDiagnosis({ ...entry, image_path });
+      setSavedFor(prev => new Set(prev).add(key));
+      setLibStatus("האבחון נשמר בספרייה");
+      refreshLibrary();
+    } catch (err) { setLibStatus("השמירה לספרייה נכשלה: " + (err.message || err)); }
+  }
 
   return (
     <div className="page">
@@ -105,11 +152,18 @@ export default function Diagnosis({ item }) {
                 <p className="muted small">שינוי אחד בכל פעם. חיים איתו שבוע, וחוזרים לאבחון.</p>
                 <div className="label">המרחב המתוקן</div>
                 <VisualCard
-                  vkey={`diagnosis:${top[0]}`}
-                  title={`החדר עם ${EL[top[0]].n}`}
-                  tone={EL[top[0]].c}
-                  data={{ room: "חדר מגורים אחרי התיקון", element: top[0], bagua: EL_BAGUA[top[0]], light: EL_LIGHT[top[0]], chi: "flow" }}
+                  vkey={`diagnosis:${k0}`}
+                  title={`החדר עם ${EL[k0].n}`}
+                  tone={EL[k0].c}
+                  data={vdata}
+                  onSaved={row => saveToLibrary(row.image_path)}
                 />
+                <div className="row-btns lib-save">
+                  <button className="btn btn-dark" onClick={() => saveToLibrary()} disabled={savedFor.has(key)} data-act="save-diagnosis">
+                    {savedFor.has(key) ? "האבחון בספרייה" : "שמירת האבחון לספרייה"}
+                  </button>
+                  <span className="muted small" role="status">{libStatus || "שמירת תמונה בכרטיס שומרת גם את האבחון בספרייה"}</span>
+                </div>
               </motion.div>
             ) : (
               <motion.div key="none" className="card result empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -120,6 +174,35 @@ export default function Diagnosis({ item }) {
           </AnimatePresence>
         </div>
       </div>
+
+      <section className="block" id="library">
+        <div className="block-head">
+          <div className="label">ספרייה · {library.length}</div>
+          <h2 className="h1">ספריית האבחונים</h2>
+          <p className="muted">כל אבחון שנשמר: התמונה של המרחב המתוקן, מה הורגש בחדר, והתובנה. הספרייה משותפת לכל המכשירים. לחיצה על "פתיחת האבחון" מחזירה את הסימונים שלו.</p>
+        </div>
+        {library.length ? (
+          <div className="library">
+            {library.map(d => {
+              const e = EL[d.element] || EL.earth;
+              return (
+                <article key={d.id} className="card lib-card" style={{ "--c": e.c }} data-diag={d.id}>
+                  <div className="lib-media">{d.src ? <img src={d.src} alt={d.title} loading="lazy" /> : <span className="label">אין תמונה</span>}</div>
+                  <div className="lib-body">
+                    <div className="lib-meta"><span className="el-tag" style={{ "--c": e.c }}>{e.n}</span><span className="mono">{new Date(d.created_at).toLocaleDateString("he-IL")}</span></div>
+                    <h3 className="h3">{d.title}</h3>
+                    <p className="lib-insight">{d.insight}</p>
+                    <p className="lib-expl">{d.explanation}</p>
+                    <button className="btn btn-sm" onClick={() => { go("diagnosis", (d.symptoms || []).join(".")); window.scrollTo({ top: 0, behavior: "smooth" }); }} data-act="open-diagnosis">פתיחת האבחון</button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="card empty"><p className="muted">הספרייה עדיין ריקה. מסמנים תחושות, ושומרים את האבחון או את התמונה של המרחב המתוקן.</p></div>
+        )}
+      </section>
 
       <div className="notes">
         <Note kind="איך לקרוא">

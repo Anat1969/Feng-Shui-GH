@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { buildVisualPrompt } from "../lib/visualPrompt.js";
 import { imageFromClipboard, imageFromDrop, toJpeg, copyText } from "../lib/images.js";
-import { loadVisuals, saveVisual, uploadImage, signedUrl, removeImage } from "../lib/supabase.js";
+import { loadVisuals, saveVisual, uploadImage, signedUrl } from "../lib/supabase.js";
 
 /* מאגר משותף לכל הכרטיסים: נטען פעם אחת מ-fs_room_visuals. התמונות משותפות לכל המבקרים. */
 let cache = null;
@@ -18,11 +18,14 @@ function useVisuals() {
   return { rows, put, error };
 }
 
+/* הנתיב של התמונה השמורה למפתח, אם נטענה */
+export const visualPath = key => cache?.[key]?.image_path || null;
+
 /*
   כרטיס המחשה: בחזית שם, תובנה ותמונה. לחיצה הופכת.
   מאחור: הפרומפט, העתקה, הדבקת תמונה (Ctrl+V, גרירה או קובץ) ושמירה.
 */
-export default function VisualCard({ vkey, title, data, tone }) {
+export default function VisualCard({ vkey, title, data, tone, onSaved }) {
   const { insight, prompt } = buildVisualPrompt(data);
   const { rows, put, error: loadError } = useVisuals();
   const saved = rows?.[vkey];
@@ -63,10 +66,11 @@ export default function VisualCard({ vkey, title, data, tone }) {
       const path = await uploadImage(blob, "visuals", vkey);
       const row = { visual_key: vkey, prompt, insight, image_path: path };
       await saveVisual(row);
-      if (saved?.image_path && saved.image_path !== path) removeImage(saved.image_path).catch(() => {});
+      /* התמונה הקודמת לא נמחקת: ספריית האבחונים עשויה להצביע עליה */
       put(vkey, row);
       setDraft(null); setDraftUrl("");
       setStatus("נשמר");
+      if (onSaved) await onSaved(row);
       setFlipped(false);
     } catch (e) {
       setStatus("השמירה נכשלה: " + (e.message || e));
