@@ -4,6 +4,18 @@ import { go } from "../router.js";
 import { SectionHead, Note, Trigram, ElTag } from "./ui.jsx";
 import BaguaArt from "./BaguaArt.jsx";
 
+/* תובנה לכל טריגרם: איך הדימוי מוביל לנושא */
+const TG_INSIGHT = {
+  north: "מים זורמים מוצאים דרך, כמו מסלול חיים",
+  ne: "ההר עומד ושותק: מקום ללמידה והתבוננות",
+  east: "הרעם מעיר את האביב: צמיחה של משפחה ובריאות",
+  se: "הרוח מפזרת זרעים: שפע שנע ומתרבה",
+  south: "האש מאירה ונראית מרחוק: מוניטין והכרה",
+  sw: "האדמה מקבלת ומחזיקה: זוגיות ויחסים",
+  west: "האגם שמח ומשקף: יצירה וילדים",
+  nw: "השמיים פרושים מעל: אנשים תומכים ומסעות",
+};
+
 export default function Bagua({ item }) {
   const selected = BG[item] ? item : null;
   const select = k => go("bagua", k);
@@ -72,16 +84,18 @@ export default function Bagua({ item }) {
         <div className="block-head">
           <div className="label">מפתח</div>
           <h2 className="h1">שמונה הטריגרמים</h2>
-          <p className="muted">כל טריגרם בנוי משלושה קווים. קו שלם הוא יאנג, קו שבור הוא יין. קוראים אותם מלמטה למעלה.</p>
+          <p className="muted">כל טריגרם בנוי משלושה קווים. קו שלם הוא יאנג, קו שבור הוא יין. קוראים אותם מלמטה למעלה. ברקע: הדימוי של הטריגרם, ומתחתיו התובנה שמחברת אותו לנושא.</p>
         </div>
         <div className="trigrams">
           {BAGUA_ORDER.filter(k => k !== "center").map(k => {
             const b = BG[k];
             return (
-              <button key={k} className="tg card" onClick={() => select(k)}>
+              <button key={k} className="tg card" onClick={() => select(k)} style={{ "--c": EL[b.el].c }} data-tg={k}>
+                <BaguaArt k={k} color={EL[b.el].c} />
                 <Trigram lines={b.trigram} w={40} />
                 <span className="tg-n">{b.tg}</span>
                 <span className="mono">{b.py} · {b.img}</span>
+                <span className="tg-insight">{TG_INSIGHT[k]}</span>
               </button>
             );
           })}
