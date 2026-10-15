@@ -1,35 +1,71 @@
 import { createClient } from "@supabase/supabase-js";
+import { useEffect, useState } from "react";
 
 /*
-  Supabase: פרויקט cultura-GH, טבלאות fs_ בלבד.
-  אין כניסה למשתמשים: כל דפדפן מקבל מזהה אקראי (fs_device) שנשלח בכותרת x-fs-device,
-  וה-RLS מחזיר לכל מכשיר רק את השורות והקבצים שלו.
+  Supabase: פרויקט cultura-GH, אובייקטים עם תחילית fs בלבד.
+  התמונות של החדרים הן תוכן משותף: כל מבקר רואה אותן מכל מכשיר.
+  הוספת תמונות וניתוח תמונה (שמפעיל את מפתח Claude) מותרים רק למנהלת מחוברת,
+  כלומר משתמש שהמייל שלו נמצא בטבלה fs_admins. ה-RLS ופונקציית ה-Edge אוכפים את זה בשרת.
 */
 const URL = import.meta.env.VITE_SUPABASE_URL || "https://ktqmwpbzcnzkhjskqisy.supabase.co";
 const KEY = import.meta.env.VITE_SUPABASE_ANON_KEY ||
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0cW13cGJ6Y256a2hqc2txaXN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxODM4OTgsImV4cCI6MjEwNTc1OTg5OH0.uPKn4hrLk16jhDoajMjPl4OmV5j1b3bMIECVmOdhWGI";
 
 export const BUCKET = "fs-images";
-
-function readDevice() {
-  let id = "";
-  try { id = localStorage.getItem("fs_device") || ""; } catch {}
-  if (id.length < 20) {
-    id = "fs-" + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36) + Math.random().toString(36).slice(2));
-    try { localStorage.setItem("fs_device", id); } catch {}
-  }
-  return id;
-}
-
-export const device = readDevice();
+const SHARED = "shared-feng-shui-content";
 
 export const supabase = createClient(URL, KEY, {
-  auth: { persistSession: false, autoRefreshToken: false },
-  global: { headers: { "x-fs-device": device } },
+  auth: { persistSession: true, autoRefreshToken: true, storageKey: "fs-auth" },
 });
 
-export async function uploadImage(blob, key) {
-  const path = `${device}/${key.replace(/[^a-z0-9-]/gi, "-")}-${Date.now()}.jpg`;
+/* ---------- כניסת מנהלת ---------- */
+
+let adminState = { ready: false, session: null, isAdmin: false };
+const listeners = new Set();
+const emit = () => listeners.forEach(f => f(adminState));
+
+async function refreshAdmin(session) {
+  let isAdmin = false;
+  if (session?.user?.email) {
+    const { data } = await supabase.from("fs_admins").select("email");
+    isAdmin = (data || []).some(r => r.email === session.user.email.toLowerCase());
+  }
+  adminState = { ready: true, session, isAdmin };
+  emit();
+}
+
+supabase.auth.getSession().then(({ data }) => refreshAdmin(data.session)).catch(() => { adminState = { ...adminState, ready: true }; emit(); });
+supabase.auth.onAuthStateChange((_e, session) => { setTimeout(() => refreshAdmin(session), 0); });
+
+export function useAdmin() {
+  const [s, set] = useState(adminState);
+  useEffect(() => { listeners.add(set); set(adminState); return () => listeners.delete(set); }, []);
+  return s;
+}
+
+/* האם כניסה עם Google מופעלת בפרויקט */
+let googlePromise = null;
+export function googleEnabled() {
+  googlePromise = googlePromise || fetch(`${URL}/auth/v1/settings`, { headers: { apikey: KEY } })
+    .then(r => r.json()).then(s => !!s?.external?.google).catch(() => false);
+  return googlePromise;
+}
+
+export function signInGoogle() {
+  return supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: location.origin + location.pathname + location.hash } });
+}
+
+export async function signInPassword(email, password) {
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw new Error(error.message === "Invalid login credentials" ? "המייל או הסיסמה שגויים" : error.message);
+}
+
+export const signOut = () => supabase.auth.signOut();
+
+/* ---------- קבצים ---------- */
+
+export async function uploadImage(blob, folder, key) {
+  const path = `${folder}/${key.replace(/[^a-z0-9-]/gi, "-")}-${Date.now()}.jpg`;
   const { error } = await supabase.storage.from(BUCKET).upload(path, blob, { contentType: "image/jpeg", upsert: false });
   if (error) throw error;
   return path;
@@ -37,7 +73,7 @@ export async function uploadImage(blob, key) {
 
 export async function signedUrl(path) {
   if (!path) return "";
-  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, 60 * 60);
+  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, 60 * 60 * 6);
   if (error) throw error;
   return data.signedUrl;
 }
@@ -46,7 +82,8 @@ export async function removeImage(path) {
   if (path) await supabase.storage.from(BUCKET).remove([path]);
 }
 
-/* מצב התמונות של כל הכרטיסים: { visual_key: { prompt, insight, image_path } } */
+/* ---------- תמונות החדרים: תוכן משותף ---------- */
+
 export async function loadVisuals() {
   const { data, error } = await supabase.from("fs_room_visuals").select("visual_key,prompt,insight,image_path,updated_at");
   if (error) throw error;
@@ -55,16 +92,17 @@ export async function loadVisuals() {
 
 export async function saveVisual(row) {
   const { error } = await supabase.from("fs_room_visuals").upsert(
-    { device_id: device, updated_at: new Date().toISOString(), ...row },
-    { onConflict: "device_id,visual_key" }
+    { device_id: SHARED, updated_at: new Date().toISOString(), ...row },
+    { onConflict: "visual_key" }
   );
   if (error) throw error;
 }
 
+/* ---------- ניתוח תמונה: מנהלת בלבד ---------- */
+
 export async function analyzeImage(base64, mediaType, note) {
   const { data, error } = await supabase.functions.invoke("fs-analyze-image", {
     body: { image: base64, media_type: mediaType, note },
-    headers: { "x-fs-device": device },
   });
   if (error) {
     let msg = error.message;
@@ -82,7 +120,7 @@ export async function listAnalyses() {
 }
 
 export async function insertAnalysis(row) {
-  const { data, error } = await supabase.from("fs_image_analyses").insert({ device_id: device, ...row }).select().single();
+  const { data, error } = await supabase.from("fs_image_analyses").insert({ device_id: SHARED, ...row }).select().single();
   if (error) throw error;
   return data;
 }

@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { buildVisualPrompt } from "../lib/visualPrompt.js";
 import { imageFromClipboard, imageFromDrop, toJpeg, copyText } from "../lib/images.js";
-import { loadVisuals, saveVisual, uploadImage, signedUrl, removeImage } from "../lib/supabase.js";
+import { loadVisuals, saveVisual, uploadImage, signedUrl, removeImage, useAdmin } from "../lib/supabase.js";
 
-/* מאגר משותף לכל הכרטיסים: נטען פעם אחת מ-fs_room_visuals */
+/* מאגר משותף לכל הכרטיסים: נטען פעם אחת מ-fs_room_visuals. התמונות משותפות לכל המבקרים. */
 let cache = null;
 let pending = null;
 function useVisuals() {
@@ -25,6 +25,7 @@ function useVisuals() {
 export default function VisualCard({ vkey, title, data, tone }) {
   const { insight, prompt } = buildVisualPrompt(data);
   const { rows, put, error: loadError } = useVisuals();
+  const { isAdmin } = useAdmin();
   const saved = rows?.[vkey];
   const [flipped, setFlipped] = useState(false);
   const [img, setImg] = useState("");
@@ -42,7 +43,7 @@ export default function VisualCard({ vkey, title, data, tone }) {
     return () => { live = false; };
   }, [saved?.image_path]);
 
-  useEffect(() => { if (flipped) setTimeout(() => zone.current?.focus({ preventScroll: true }), 350); }, [flipped]);
+  useEffect(() => { if (flipped && isAdmin) setTimeout(() => zone.current?.focus({ preventScroll: true }), 350); }, [flipped, isAdmin]);
   useEffect(() => () => draftUrl && URL.revokeObjectURL(draftUrl), [draftUrl]);
 
   function take(file) {
@@ -60,7 +61,7 @@ export default function VisualCard({ vkey, title, data, tone }) {
     setBusy(true); setStatus("שומר...");
     try {
       const blob = await toJpeg(draft);
-      const path = await uploadImage(blob, vkey);
+      const path = await uploadImage(blob, "visuals", vkey);
       const row = { visual_key: vkey, prompt, insight, image_path: path };
       await saveVisual(row);
       if (saved?.image_path && saved.image_path !== path) removeImage(saved.image_path).catch(() => {});
@@ -78,7 +79,7 @@ export default function VisualCard({ vkey, title, data, tone }) {
       <div className="flip-inner">
         <button className="flip-face flip-front" onClick={() => setFlipped(true)} aria-label={`${title}: הפיכת הכרטיס`} tabIndex={flipped ? -1 : 0}>
           <span className="flip-media">
-            {img ? <img src={img} alt={title} /> : <span className="flip-empty"><span className="label">עדיין אין תמונה</span><span>הופכים את הכרטיס, מעתיקים את הפרומפט ומדביקים כאן את התמונה שנוצרה</span></span>}
+            {img ? <img src={img} alt={title} /> : <span className="flip-empty"><span className="label">עדיין אין תמונה</span><span>{isAdmin ? "הופכים את הכרטיס, מעתיקים את הפרומפט ומדביקים כאן את התמונה שנוצרה" : "הופכים את הכרטיס כדי לראות את הפרומפט להמחשה"}</span></span>}
           </span>
           <span className="flip-text">
             <span className="h3">{title}</span>
@@ -95,9 +96,10 @@ export default function VisualCard({ vkey, title, data, tone }) {
           <p className="prompt-text" dir="rtl">{prompt}</p>
           <div className="row-btns">
             <button className="btn btn-dark btn-sm" onClick={copy} tabIndex={flipped ? 0 : -1} data-act="copy-prompt">העתקת פרומפט</button>
-            <button className="btn btn-sm" onClick={() => fileRef.current?.click()} tabIndex={flipped ? 0 : -1}>בחירת קובץ</button>
-            <input ref={fileRef} type="file" accept="image/*" hidden onChange={e => take(e.target.files?.[0])} data-act="file" />
+            {isAdmin && <button className="btn btn-sm" onClick={() => fileRef.current?.click()} tabIndex={flipped ? 0 : -1}>בחירת קובץ</button>}
+            {isAdmin && <input ref={fileRef} type="file" accept="image/*" hidden onChange={e => take(e.target.files?.[0])} data-act="file" />}
           </div>
+          {isAdmin ? <>
           <div
             ref={zone}
             className={`paste-zone${draftUrl ? " has-img" : ""}`}
@@ -113,6 +115,7 @@ export default function VisualCard({ vkey, title, data, tone }) {
             <button className="btn btn-dark btn-sm" onClick={save} disabled={!draft || busy} tabIndex={flipped ? 0 : -1} data-act="save">שמירה</button>
             <span className="muted small" role="status">{status || loadError}</span>
           </div>
+          </> : <p className="muted small" role="status">{status || "את התמונה מוסיפה המנהלת. אפשר להעתיק את הפרומפט וליצור המחשה משלכם."}</p>}
         </div>
       </div>
     </div>
