@@ -444,6 +444,17 @@ p:last-child { margin-bottom: 0; }
 .compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--g); }
 .compare figure { margin: 0; display: grid; gap: 8px; align-content: start; }
 .compare figure > img { width: 100%; max-height: 420px; object-fit: contain; border-radius: 10px; background: #fff; }
+/* ספריית האבחונים */
+.lib-save { margin-top: var(--g-sm); }
+.library { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--g); align-items: stretch; }
+.card.lib-card { display: grid; grid-template-rows: auto 1fr; padding: 0; overflow: hidden; border-top: 3px solid var(--c); }
+.lib-media { aspect-ratio: 1; background: var(--bg); display: grid; place-items: center; }
+.lib-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.lib-body { display: grid; align-content: start; gap: var(--g-sm); padding: var(--pad); }
+.lib-body .btn { justify-self: start; }
+.lib-meta { display: flex; justify-content: space-between; align-items: center; gap: var(--g-sm); }
+.lib-insight { font-weight: 500; font-size: 1.05rem; margin: 0; }
+.lib-expl { color: var(--ink-2); font-size: .95rem; margin: 0; }
 .history { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--g); }
 .hist { display: grid; gap: 6px; text-align: right; cursor: pointer; padding: 12px; transition: transform .2s var(--ease); }
 .hist:hover { transform: translateY(-3px); }
@@ -510,6 +521,7 @@ p:last-child { margin-bottom: 0; }
   .trigrams { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .rooms, .visuals { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .history { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .library { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 860px) {
   .split, .split-tight, .hero, .two-col, .vgp, .notes, .bedgame { grid-template-columns: minmax(0, 1fr); }
@@ -535,6 +547,7 @@ p:last-child { margin-bottom: 0; }
   .page-foot { padding: 0 16px 32px; }
   .steps, .swatches, .el-sum, .rooms, .visuals, .compare { grid-template-columns: minmax(0, 1fr); }
   .history, .trigrams { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .library { grid-template-columns: minmax(0, 1fr); }
   .route-item { grid-template-columns: 40px minmax(0, 1fr); padding: 16px; gap: 12px; }
   .route-go { display: none; }
   .route-n { font-size: 1.2rem; }
