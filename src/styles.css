@@ -59,13 +59,7 @@ p:last-child { margin-bottom: 0; }
 }
 .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); min-width: 0; }
 .app-mark { width: 40px; height: 40px; flex: 0 0 auto; border-radius: 10px; box-shadow: 0 0 0 1px rgba(0,0,0,.08), 0 6px 14px -6px rgba(0,0,0,.35); }
-.brand-logo { display: block; width: auto; height: 48px; border-radius: 6px; }
 .settings { position: relative; flex: 0 0 auto; }
-.logo-btn {
-  display: block; padding: 0; border: 0; border-radius: 7px; background: #fff; cursor: pointer;
-  box-shadow: 0 0 0 1px rgba(0,0,0,.08), 0 6px 16px -8px rgba(0,0,0,.35); transition: transform .15s var(--ease), box-shadow .2s;
-}
-.logo-btn:hover, .logo-btn.on { transform: translateY(-1px); box-shadow: 0 0 0 2px var(--ink), 0 10px 22px -10px rgba(0,0,0,.45); }
 .settings-card {
   position: absolute; top: calc(100% + 10px); inset-inline-end: 0; z-index: 60; width: min(320px, calc(100vw - 32px));
   background: linear-gradient(180deg, #FFFFFF, #F8F8F6); border: 1px solid rgba(0,0,0,.08); border-radius: var(--r);
@@ -80,10 +74,6 @@ p:last-child { margin-bottom: 0; }
 .proj a:hover { border-color: var(--ink); }
 .proj span[dir=ltr] { justify-self: start; font-family: var(--mono); font-size: .84rem; }
 .proj small { font-size: .76rem; color: var(--ink-3); line-height: 1.45; }
-.settings-list { display: grid; gap: 6px; }
-.settings-list .btn { justify-content: flex-start; }
-.settings-note { display: block; padding: 4px 2px; line-height: 1.5; }
-.settings-sep { height: 1px; background: var(--line); margin: 14px 0 12px; }
 .login { display: grid; gap: 8px; }
 .login p { margin: 0; }
 .login-form { display: grid; gap: 6px; }
@@ -532,13 +522,12 @@ p:last-child { margin-bottom: 0; }
   .hero-art { order: -1; max-width: 300px; margin: 0 auto; }
 }
 @media (max-width: 640px) {
-  :root { --nav-h: 108px; --g: 16px; --g-lg: 24px; --pad: 18px; --block: 56px; }
+  :root { --nav-h: 112px; --g: 16px; --g-lg: 24px; --pad: 18px; --block: 56px; }
   body { font-size: 16px; }
   .cell-face { padding: 4px; gap: 3px; }
   .cell-insight { font-size: .66rem; }
   .cell-tg { font-size: .95rem; }
   .topbar-row { padding: 10px 16px 4px; gap: 8px; }
-  .brand-logo { height: 38px; }
   .app-mark { width: 32px; height: 32px; border-radius: 8px; }
   .brand-name { font-size: 1.45rem; }
   .brand-sub { display: none; }

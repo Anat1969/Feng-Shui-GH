@@ -5,24 +5,20 @@ import { go } from "../router.js";
 import KeyMark from "./KeyMark.jsx";
 
 export default function Nav({ current }) {
-  const [copied, setCopied] = useState(false);
-  const [installEvt, setInstallEvt] = useState(null);
   const [open, setOpen] = useState(false);
   const tabsRef = useRef(null);
   const menuRef = useRef(null);
+  const aiRef = useRef(null);
 
   useEffect(() => {
     const el = tabsRef.current?.querySelector(".tab.on");
     el?.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
   }, [current]);
 
+  // The A&I logo button holds copy link, dev chat, research project, install, and the project details card.
   useEffect(() => {
-    const on = e => { e.preventDefault(); setInstallEvt(e); };
-    const done = () => setInstallEvt(null);
-    window.addEventListener("beforeinstallprompt", on);
-    window.addEventListener("appinstalled", done);
-    return () => { window.removeEventListener("beforeinstallprompt", on); window.removeEventListener("appinstalled", done); };
-  }, []);
+    if (aiRef.current) aiRef.current.items = [{ label: "פרטי הפרויקט", pressed: open, onSelect: () => setOpen(o => !o) }];
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -33,26 +29,6 @@ export default function Nav({ current }) {
     return () => { document.removeEventListener("pointerdown", close); document.removeEventListener("keydown", esc); };
   }, [open]);
 
-  async function copyLink() {
-    const url = location.href;
-    try { await navigator.clipboard.writeText(url); }
-    catch {
-      const t = document.createElement("textarea");
-      t.value = url; document.body.appendChild(t); t.select();
-      try { document.execCommand("copy"); } catch {}
-      t.remove();
-    }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1800);
-  }
-
-  async function install() {
-    if (!installEvt) return;
-    installEvt.prompt();
-    await installEvt.userChoice.catch(() => {});
-    setInstallEvt(null);
-  }
-
   return (
     <nav className="topbar" aria-label="ניווט ראשי">
       <div className="topbar-row">
@@ -62,30 +38,18 @@ export default function Nav({ current }) {
           <span className="brand-sub">קריאת מרחב</span>
         </a>
         <div className="settings" ref={menuRef}>
-          <button className={`logo-btn${open ? " on" : ""}`} onClick={() => setOpen(o => !o)} aria-expanded={open} aria-haspopup="dialog" aria-label="הגדרות" data-act="settings">
-            <img className="brand-logo" src="/logo.png" alt="אד׳ ענת שטיבלמן" width="442" height="155" />
-          </button>
+          <ai-menu ref={aiRef} chat={LINKS.dev} research={LINKS.research} />
           <AnimatePresence>
             {open && (
               <motion.div
                 className="settings-card"
                 role="dialog"
-                aria-label="הגדרות"
+                aria-label="פרטי הפרויקט"
                 initial={{ opacity: 0, y: -8, scale: 0.97 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -6, scale: 0.98 }}
                 transition={{ duration: 0.2 }}
               >
-                <div className="label">הגדרות</div>
-                <div className="settings-list">
-                  <button className="btn" onClick={copyLink} data-testid="copy">{copied ? "הקישור הועתק" : "העתקת קישור"}</button>
-                  <a className="btn" href={LINKS.dev} target="_blank" rel="noopener">שיחת הפיתוח</a>
-                  <a className="btn" href={LINKS.research} target="_blank" rel="noopener">פרויקט המחקר</a>
-                  {installEvt
-                    ? <button className="btn btn-dark" onClick={install}>התקנת האפליקציה</button>
-                    : <span className="muted small settings-note">התקנת האפליקציה: נפתחת כשהדפדפן Chrome מציע אותה, או מתפריט Chrome, "התקנה".</span>}
-                </div>
-                <div className="settings-sep" />
                 <div className="label">פרטי הפרויקט</div>
                 <dl className="proj">
                   {PROJECT.map(p => (
