@@ -3,7 +3,7 @@ const fs = require('fs');
 // בדיקת קצה לקצה: npm run build, npx vite preview --port 4173, ואז node tests/e2e.cjs
 // צילומי מסך נשמרים ב-tests/out (לא בריפו).
 const path = require('path');
-const F = path.join(__dirname, 'fixtures'), S = path.join(__dirname, 'out'), U = 'http://localhost:4173/';
+const F = path.join(__dirname, 'fixtures'), S = path.join(__dirname, 'out'), U = `http://localhost:${process.env.PORT || 4173}/`;
 require('fs').mkdirSync(S, { recursive: true });
 const SB = 'https://ktqmwpbzcnzkhjskqisy.supabase.co';
 const fails = []; const ok = m => console.log('ok  ', m); const bad = m => { fails.push(m); console.log('FAIL', m); };
@@ -66,6 +66,8 @@ function mock(ctx, db, log) {
     const db = { visuals: { 'room:entry': { visual_key: 'room:entry', prompt: 'p', insight: 'i', image_path: 'visuals/room-entry-1.jpg' } }, upserts: [], analyses: [], files: [], fn: [], diags: [] }, log = [];
     const ctx = await b.newContext({ viewport: vp, permissions: ['clipboard-read', 'clipboard-write'] });
     await mock(ctx, db, log);
+    // The A&I logo button comes from the portfolio app; AI_MENU_JS can point to a local copy.
+    if (process.env.AI_MENU_JS) await ctx.route('https://appofapp-gh.vercel.app/ai-menu.js', r => r.fulfill({ path: process.env.AI_MENU_JS, contentType: 'application/javascript' }));
     const p = await ctx.newPage();
     const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => m.type() === 'error' && !/fonts\.g|status of 40[013]/.test(m.text()) && errs.push(m.text()));
     const hs = async t => { const w = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth); if (w > 0) bad(`${name} ${t} hscroll ${w}`); };
@@ -75,14 +77,19 @@ function mock(ctx, db, log) {
     (await p.locator('.topbar .actions').count()) === 0 ? ok('no button row in top bar') : bad('actions row still there');
     const nav = await p.locator('.topbar').boundingBox(); const top = await p.locator('main').evaluate(e => parseFloat(getComputedStyle(e).paddingTop));
     nav.height <= top + 1 ? ok(`nav ${Math.round(nav.height)} fits slot ${top}`) : bad(`nav ${nav.height} > ${top}`);
-    // settings card
-    await p.click('[data-act=settings]'); await p.waitForTimeout(300);
+    // A&I logo button
+    (await p.locator('.topbar ai-menu .logo').isVisible()) ? ok('A&I logo button in the top bar') : bad('A&I logo button');
+    await p.click('ai-menu .logo'); await p.waitForTimeout(300);
+    const menu = p.locator('ai-menu .panel');
+    (await menu.locator('text=העתקת קישור').count()) && (await menu.locator('text=שיחת הפיתוח').count()) && (await menu.locator('text=פרויקט המחקר').count()) && (await menu.locator('text=התקנת האפליקציה').count())
+      ? ok('A&I menu has all 4') : bad('A&I menu');
+    await menu.locator('.item', { hasText: 'העתקת קישור' }).click(); await p.waitForTimeout(300);
+    (await p.evaluate(() => navigator.clipboard.readText())).startsWith(U) ? ok('copy link from menu') : bad('copy');
+    await p.waitForTimeout(1000);
+    await p.click('ai-menu .logo'); await p.waitForTimeout(300);
+    await p.locator('ai-menu .item', { hasText: 'פרטי הפרויקט' }).click(); await p.waitForTimeout(300);
     const card = p.locator('.settings-card');
-    (await card.count()) && (await card.locator('text=העתקת קישור').count()) && (await card.locator('text=שיחת הפיתוח').count()) && (await card.locator('text=פרויקט המחקר').count()) && (await card.locator('text=התקנת האפליקציה').count())
-      ? ok('settings card has all 4') : bad('settings card');
-    const cb = await card.boundingBox(); (cb.x >= 0 && cb.x + cb.width <= vp.width) ? ok('card inside viewport') : bad('card overflow ' + JSON.stringify(cb));
-    await card.locator('[data-testid=copy]').click(); await p.waitForTimeout(200);
-    (await p.evaluate(() => navigator.clipboard.readText())).startsWith(U) ? ok('copy link from card') : bad('copy');
+    const cb = await card.boundingBox(); (cb && cb.x >= 0 && cb.x + cb.width <= vp.width) ? ok('card inside viewport') : bad('card overflow ' + JSON.stringify(cb));
     await hs('card open');
     await p.mouse.click(vp.width - 8, vp.height - 8); await p.waitForTimeout(400);
     (await p.locator('.settings-card').count()) === 0 ? ok('outside click closes card') : bad('card not closed');
@@ -198,7 +205,8 @@ function mock(ctx, db, log) {
     const p2 = await ctx2.newPage(); await p2.goto(U + '#practice'); await p2.waitForTimeout(1500);
     (await p2.locator('.visuals .flip-media img').count()) === 2 ? ok('another device sees the saved images') : bad('other device');
     await ctx2.close();
-    await p.click('[data-act=settings]'); await p.waitForTimeout(300);
+    await p.click('ai-menu .logo'); await p.waitForTimeout(300);
+    await p.locator('ai-menu .item', { hasText: 'פרטי הפרויקט' }).click(); await p.waitForTimeout(300);
     (await p.locator('.settings-card input, .settings-card [data-act=login]').count()) === 0 ? ok('settings card without admin login') : bad('admin in card');
     (await p.locator('.settings-card').innerText()).includes('מפתח מאיר') ? ok('project details mention key mark') : bad('key text');
     await p.screenshot({ path: `${S}/${name}-v7-settings.png` });
